@@ -1,14 +1,15 @@
 import sys, getopt
-import os #, time, random
+import os, time, random
 import zipfile
-from multiprocessing import Process, Array, Semaphore, Value
+from multiprocessing import Array, Semaphore, Value
+from threading import Thread
 from ctypes import c_char_p, c_int
+
 
 def decompress(nomeFich):
         z = zipfile.ZipFile(nomeFich, mode='r')
         z.extractall()
         z.close()
-        return
     
 def compress(nomeFich):
         comprimido = zipfile.ZipFile(nomeFich+'.zip', mode='a')
@@ -34,17 +35,31 @@ def main(argv):
         elif opt == '-t':
             fullCheck = 1
         elif opt in ("-p", "--numprocs"):
-            procs = int(arg)
+            try:
+                procs = int(arg)
+            except:
+                print "Insert whole number"
+                return
+
+    if procs < 1:
+        print "Insert Int bigger than 0"
+        return
     
     if comprBool == -1:
         print "Insert -c (compress) or -d (decompress)"
         return 0
     
-    fichArgs = args
+    fichArgs = []
     if args == []:
-        print "Insert File Names:"
-        linha = sys.stdin.readline()
-        fichArgs = linha.split()
+        print "Insert File Names: (CTRL + D to Finish)"
+        #linha = sys.stdin.readline()
+        #fichArgs = linha.split()
+        for line in sys.stdin:
+            temp = line
+            temp2 = temp.rstrip('\n')
+            fichArgs.append(temp2)
+    else:
+        fichArgs = args
     
     fichList = []
     
@@ -81,35 +96,30 @@ def main(argv):
     
     intPartilhado = Value(c_int, -1)
     
-    vazio = Semaphore(0)
-    full = Semaphore(procs)
+    vazio = Semaphore(1)
     
     def filho():
-        while True:
-            full.acquire()
-            vazio.release()
-            # print full
-            # print vazio
-            if intPartilhado.value >= len(listaPartilhada)-1:
-                return 0
-            else:
-                intPartilhado.value += 1
+        while (intPartilhado.value < len(listaPartilhada)-1):
+            vazio.acquire()
+            intPartilhado.value += 1
             temp = listaPartilhada[intPartilhado.value]
             # print temp
             # print intPartilhado.value
-            vazio.acquire()
+            vazio.release()
             if comprBool == 0:
                 # print "process number " + str(os.getpid()) + " will decompress " + temp
+                time.sleep(0.1)
                 decompress(temp)
             elif comprBool == 1:
-                # print "process number " + str(os.getpid()) + " will compress " + temp
+                print "process number " + str(os.getpid()) + " will compress " + temp
+                time.sleep(0.1)
                 compress(temp)
-            full.release()
+        return 0
 
     
     filhos=[]
     for i in range(procs):
-        newP= Process(target=filho)
+        newP= Thread(target=filho)
         filhos.append(newP)
         newP.start() 
     for p in filhos: 
@@ -119,7 +129,7 @@ def main(argv):
 
     print "Numero de ficheiros processados: " + str(intPartilhado.value+1)
     
-# buy bitcoin
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
