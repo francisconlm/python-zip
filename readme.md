@@ -1,7 +1,7 @@
 Programs in Python to compress\decompress files using Multiprocessing
 
 
-'pzip -c|-d [-p n] [-t] {files}'
+"pzip -c|-d [-p n] [-t] [-a n] [-f s] {files}"
 
 
 -c  compress # Mandatory
