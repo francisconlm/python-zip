@@ -12,6 +12,11 @@ Programs in Python to compress\decompress files using Multiprocessing
 
 -t check files names for existance and stop in last existant
 
+-a period log
+
+-f save log to file
+
+
 
 if you don't insert any file name, you will be prompted.
 
