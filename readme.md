@@ -17,6 +17,8 @@ Programs in Python to compress\decompress files using Multiprocessing
 -f save log to file
 
 
+"lzip file"
 
+read log file
 if you don't insert any file name, you will be prompted.
 
